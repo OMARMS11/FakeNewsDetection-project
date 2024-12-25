@@ -1,4 +1,10 @@
 #<---packages here--->
+library(rpart)
+library(rpart.plot)
+library(e1071)
+library(tm)
+library(stringi)
+library(textreadr)
 
 
 #<---The Functions are here--->
@@ -32,6 +38,19 @@ IsCapsMore <- function(text) {
   }
 }
 
+count_syllables <- function(word) {
+  stri_count_words(stri_replace_all_regex(word, "[^aeiouy]", ""))
+}
+
+clean_text <- function(text){
+  corpus <- Corpus(VectorSource(text))
+  corpus <- tm_map(corpus, content_transformer(tolower))  # Convert text to lowercase
+  corpus <- tm_map(corpus, removePunctuation)              # Remove punctuation
+  corpus <- tm_map(corpus, removeNumbers)                  # Remove numbers
+  corpus <- tm_map(corpus, removeWords, stopwords("en"))
+  return(corpus)
+}
+
 
 #<-Shams Functions start->
 detect_spacing_type <- function(text) {
@@ -51,7 +70,6 @@ detect_spacing_type <- function(text) {
     return(0)  # Condition not met
   }
 }
-
 #<---End of the Function section--->
 
 #<---Main here--->
@@ -62,17 +80,16 @@ news <- read.csv("news.csv")
 news$X.1 <- 0
 news$X.2 <- 0
 news$X.3 <- 0
-news$X.4 <- 0
-news$X.5 <- 0
 
 #selecting certain columns
-selected_data <- news[, 1:9]
+selected_data <- news[, 1:7]
 colnames(selected_data)[1] <- "Number_ID"
 colnames(selected_data)[5] <- "IsCaps"
 colnames(selected_data)[6] <- "line_spacing"
 colnames(selected_data)[7] <- "LessThan5000"
 
-selected_data <- na.omit(selected_data)
+
+
 selected_data[, 1] <- as.numeric(selected_data[[1]])
 
 #applying  functions 
@@ -82,6 +99,47 @@ selected_data$line_spacing <- sapply(selected_data[[3]], detect_spacing_type)
 selected_data$LessThan5000 <- ifelse(selected_data[, 1] < 5000, 1, 0)
 #<-shams code end->
 
+selected_data <- na.omit(selected_data)
+
+
+#Split data
+set.seed(123) 
+
+index <- sample(1:nrow(selected_data), size = 0.75 * nrow(selected_data)) 
+train_data <- selected_data[index, ]
+test_data <- selected_data[-index, ]
+
+# Train decision tree model
+ds_model <- rpart(label ~   line_spacing, data = train_data, method = "class")
+
+#Train Naive Bayes model
+# Train Naive Bayes model       |||
+      #change feature from here VVV
+nb_model <- naiveBayes(label ~   IsCaps + line_spacing, data = train_data)
+
+
+
+
+#visualize the tree
+
+#rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
+
+#predictions using tree
+#predictions <- predict(ds_model, test_data, type = "class")
+
+#prediction using naive bayes
+predection <- predict(nb_model,test_data)
+
+# Confusion matrix
+conf_matrix <- table(Predicted = predictions, Actual = test_data$label)
+print(conf_matrix)
+
+# Calculate accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+print(paste("Accuracy: %", accuracy*100))
+
+
+
 #View data frame updates
-View(selected_data)
+
 
