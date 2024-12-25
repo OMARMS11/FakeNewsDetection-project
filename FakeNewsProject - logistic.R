@@ -110,37 +110,23 @@ set.seed(123)
 
 index <- sample(1:nrow(selected_data), size = 0.75 * nrow(selected_data)) 
 train_data <- selected_data[index, ]
+
 test_data <- selected_data[-index, ]
 
-# Train decision tree model
-ds_model <- rpart(label ~   line_spacing, data = train_data, method = "class")
+# Train Logistic Regression model
+log_model <- glm(label ~  line_spacing , data = train_data, family = "binomial")
 
-#Train Naive Bayes model
-# Train Naive Bayes model       |||
-      #change feature from here VVV
-nb_model <- naiveBayes(label ~    line_spacing , data = train_data, method = "class")
+# Make predictions using logistic regression
+log_prediction <- ifelse(predict(log_model, test_data, type = "response") > 0.5, "REAL", "FAKE")
 
+# Confusion matrix for logistic regression
+log_conf_matrix <- table(Predicted = log_prediction, Actual = test_data$label)
+print(log_conf_matrix)
 
-str(train_data)
+# Accuracy for logistic regression
+log_accuracy <- sum(diag(log_conf_matrix)) / sum(log_conf_matrix)
+print(paste("Logistic Regression Accuracy:", round(log_accuracy * 100, 2), "%"))
 
-#visualize the tree
-
-#rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
-
-#predictions using tree
-#predictions <- predict(ds_model, test_data, type = "class")
-
-#prediction using naive bayes
-prediction <- predict(nb_model, test_data[, c( "line_spacing")])
-
-
-# Confusion matrix
-conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
-print(conf_matrix)
-
-# Calculate accuracy
-accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
-print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
 
 
 

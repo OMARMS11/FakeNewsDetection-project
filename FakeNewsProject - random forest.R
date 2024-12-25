@@ -7,10 +7,12 @@ library(tm)
 library(stringi)
 library(textreadr)
 
+library(randomForest)
+
 
 #<---The Functions are here--->
 IsCapsMore <- function(text) {
- 
+  
   uppercase_matches <- gregexpr("[A-Z]", text)
   
   
@@ -112,35 +114,22 @@ index <- sample(1:nrow(selected_data), size = 0.75 * nrow(selected_data))
 train_data <- selected_data[index, ]
 test_data <- selected_data[-index, ]
 
-# Train decision tree model
-ds_model <- rpart(label ~   line_spacing, data = train_data, method = "class")
 
-#Train Naive Bayes model
-# Train Naive Bayes model       |||
-      #change feature from here VVV
-nb_model <- naiveBayes(label ~    line_spacing , data = train_data, method = "class")
+# Train Random Forest model
+rf_model <- randomForest(label ~ line_spacing, data = train_data, ntree = 100)
 
+# Make predictions using random forest
+rf_prediction <- predict(rf_model, test_data)
 
-str(train_data)
+# Confusion matrix for random forest
+rf_conf_matrix <- table(Predicted = rf_prediction, Actual = test_data$label)
+print(rf_conf_matrix)
 
-#visualize the tree
-
-#rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
-
-#predictions using tree
-#predictions <- predict(ds_model, test_data, type = "class")
-
-#prediction using naive bayes
-prediction <- predict(nb_model, test_data[, c( "line_spacing")])
+# Accuracy for random forest
+rf_accuracy <- sum(diag(rf_conf_matrix)) / sum(rf_conf_matrix)
+print(paste("Random Forest Accuracy:", round(rf_accuracy * 100, 2), "%"))
 
 
-# Confusion matrix
-conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
-print(conf_matrix)
-
-# Calculate accuracy
-accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
-print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
 
 
 
