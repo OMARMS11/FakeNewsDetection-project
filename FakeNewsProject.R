@@ -3,18 +3,18 @@
 
 #<---The Functions are here--->
 IsCapsMore <- function(text) {
-  # Count upper case characters
+ 
   uppercase_matches <- gregexpr("[A-Z]", text)
   
-  # Check if there are any matches
+  
   if (length(uppercase_matches[[1]]) == 0) {
-    # If no uppercase letters found, the count is 0
+    
     uppercase_count <- 0
   } else {
     uppercase_count <- sum(attr(uppercase_matches[[1]], "match.length") > 0)
   }
   
-  # Count total characters
+  
   total_chars <- nchar(text)
   
   # Calculate percentage of uppercase characters
@@ -26,41 +26,62 @@ IsCapsMore <- function(text) {
   
   # Return based on percentage of uppercase characters
   if (caps_char_percentage >=15.5) {
-    return(1)  # Assuming you want to return 1 if percentage >= 5
+    return(1) 
   } else {
-    return(0)  # Return 0 if percentage < 5
+    return(0)  
   }
 }
 
-capsFuncAcc <- function(r1,r2){
-  Pos_counter <- 0
+
+#<-Shams Functions start->
+detect_spacing_type <- function(text) {
+  # Split the text into lines
+  lines <- unlist(strsplit(text, "\n"))
   
-  if (r1 == "REAL" && r2 == "0") {
-    Pos_counter <- Pos_counter + 1
-  } else if (r1 == "FAKE" && r2 == "1") {
-    Pos_counter <- Pos_counter + 1
+  # Count non-empty lines
+  non_empty_count <- sum(nchar(lines) > 0)
+  
+  # Count occurrences of "\n\n"
+  double_newline_count <- length(gregexpr("\n\n", text)[[1]])
+  
+  # Check if "\n\n" count is exactly one less than the number of non-empty lines
+  if (double_newline_count == non_empty_count - 1) {
+    return(1)  # Condition met
+  } else {
+    return(0)  # Condition not met
   }
-  return(Pos_counter)
 }
+
+#<---End of the Function section--->
 
 #<---Main here--->
 #Load File  
 news <- read.csv("news.csv")
 
 #init more cols
+news$X.1 <- 0
 news$X.2 <- 0
 news$X.3 <- 0
 news$X.4 <- 0
 news$X.5 <- 0
 
 #selecting certain columns
-selected_news_cols <- news[,c("title","label","X.1","X.2","X.3","X.4","X.5")]
-colnames(selected_news_cols) <- c("title","label","IsCaps","att2","att3","att4","att5")
+selected_data <- news[, 1:9]
+colnames(selected_data)[1] <- "Number_ID"
+colnames(selected_data)[5] <- "IsCaps"
+colnames(selected_data)[6] <- "line_spacing"
+colnames(selected_data)[7] <- "LessThan5000"
 
-#applying caps function
-selected_news_cols$IsCaps <- apply(selected_news_cols["title"],1,IsCapsMore)
+selected_data <- na.omit(selected_data)
+selected_data[, 1] <- as.numeric(selected_data[[1]])
 
+#applying  functions 
+selected_data $IsCaps <- apply(selected_data ["title"],1,IsCapsMore)
+#<-shams code start->
+selected_data$line_spacing <- sapply(selected_data[[3]], detect_spacing_type)
+selected_data$LessThan5000 <- ifelse(selected_data[, 1] < 5000, 1, 0)
+#<-shams code end->
 
 #View data frame updates
-View(selected_news_cols)
+View(selected_data)
 
