@@ -1,4 +1,5 @@
-#<---packages here--->
+
+#View data frame updates#<---packages here--->
 library(rpart)
 library(rpart.plot)
 library(e1071)
@@ -100,7 +101,9 @@ selected_data$LessThan5000 <- ifelse(selected_data[, 1] < 5000, 1, 0)
 #<-shams code end->
 
 selected_data <- na.omit(selected_data)
-
+head(selected_data)
+selected_data <- selected_data[selected_data$label %in% c("REAL", "FAKE"), ]
+selected_data$label <- as.factor(selected_data$label)
 
 #Split data
 set.seed(123) 
@@ -110,15 +113,15 @@ train_data <- selected_data[index, ]
 test_data <- selected_data[-index, ]
 
 # Train decision tree model
-ds_model <- rpart(label ~   line_spacing, data = train_data, method = "class")
+ds_model <- rpart(label ~   LessThan5000 + line_spacing, data = train_data, method = "class")
 
 #Train Naive Bayes model
 # Train Naive Bayes model       |||
       #change feature from here VVV
-nb_model <- naiveBayes(label ~   IsCaps + line_spacing, data = train_data)
+nb_model <- naiveBayes(label ~   LessThan5000 + line_spacing, data = train_data, method = "class")
 
 
-
+str(train_data)
 
 #visualize the tree
 
@@ -128,18 +131,23 @@ nb_model <- naiveBayes(label ~   IsCaps + line_spacing, data = train_data)
 #predictions <- predict(ds_model, test_data, type = "class")
 
 #prediction using naive bayes
-predection <- predict(nb_model,test_data)
+prediction <- predict(nb_model, test_data[, c("LessThan5000", "line_spacing")])
+
 
 # Confusion matrix
-conf_matrix <- table(Predicted = predictions, Actual = test_data$label)
+conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
 print(conf_matrix)
 
 # Calculate accuracy
 accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
-print(paste("Accuracy: %", accuracy*100))
+print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
+
 
 
 
 #View data frame updates
+
+
+
 
 
