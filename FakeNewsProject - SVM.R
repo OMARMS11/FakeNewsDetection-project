@@ -115,7 +115,7 @@ test_data <- selected_data[-index, ]
 
 
 # Train SVM model
-svm_model <- svm(label ~  line_spacing, data = train_data, kernel = "linear")
+svm_model <- svm(label ~  IsCaps +line_spacing, data = train_data, kernel = "linear")
 
 # Make predictions using SVM
 svm_prediction <- predict(svm_model, test_data)
