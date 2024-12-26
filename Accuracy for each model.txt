@@ -1,0 +1,6 @@
+Here is the accuracy for each model used :
+
+- SVM : 92.46%
+- Decision Tee : 93.41%
+- Logistic Regression : 92.08%
+- Random Forest : 93.6%

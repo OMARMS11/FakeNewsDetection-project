@@ -33,9 +33,9 @@ IsCapsMore <- function(text) {
   
   # Return based on percentage of uppercase characters
   if (caps_char_percentage >=15.5) {
-    return(1) 
+    return(caps_char_percentage) 
   } else {
-    return(0)  
+    return(caps_char_percentage)  
   }
 }
 
@@ -66,9 +66,9 @@ detect_spacing_type <- function(text) {
   
   # Check if "\n\n" count is exactly one less than the number of non-empty lines
   if (double_newline_count == non_empty_count - 1) {
-    return(1)  # Condition met
+    return(double_newline_count)  # Condition met
   } else {
-    return(0)  # Condition not met
+    return(double_newline_count)  # Condition not met
   }
 }
 #<---End of the Function section--->
@@ -112,27 +112,17 @@ index <- sample(1:nrow(selected_data), size = 0.75 * nrow(selected_data))
 train_data <- selected_data[index, ]
 test_data <- selected_data[-index, ]
 
-# Train decision tree model
-ds_model <- rpart(label ~   line_spacing, data = train_data, method = "class")
-
-#Train Naive Bayes model
-# Train Naive Bayes model       |||
-      #change feature from here VVV
-nb_model <- naiveBayes(label ~    line_spacing , data = train_data, method = "class")
-
 
 str(train_data)
 
-#visualize the tree
+# Fit Decision Tree Model
+tree_model <- rpart(label ~ IsCaps + line_spacing, data = train_data, method = "class")
 
-#rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
+# Visualize the Decision Tree
+rpart.plot(tree_model, type = 3, extra = 101, main = "Decision Tree")
 
 #predictions using tree
-#predictions <- predict(ds_model, test_data, type = "class")
-
-#prediction using naive bayes
-prediction <- predict(nb_model, test_data[, c( "line_spacing")])
-
+prediction <- predict(tree_model, test_data, type = "class")
 
 # Confusion matrix
 conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
