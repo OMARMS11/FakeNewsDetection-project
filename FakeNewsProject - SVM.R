@@ -5,12 +5,13 @@ library(rpart.plot)
 library(e1071)
 library(tm)
 library(stringi)
-
+library(textreadr)
+library(e1071)
 
 
 #<---The Functions are here--->
 IsCapsMore <- function(text) {
- 
+  
   uppercase_matches <- gregexpr("[A-Z]", text)
   
   
@@ -33,9 +34,9 @@ IsCapsMore <- function(text) {
   
   # Return based on percentage of uppercase characters
   if (caps_char_percentage >=9.3) {
-    return(1) 
+    return(caps_char_percentage) 
   } else {
-    return(0)  
+    return(caps_char_percentage)  
   }
 }
 
@@ -66,9 +67,9 @@ detect_spacing_type <- function(text) {
   
   # Check if "\n\n" count is exactly one less than the number of non-empty lines
   if (double_newline_count == non_empty_count - 1) {
-    return(1)  # Condition met
+    return(double_newline_count)  # Condition met
   } else {
-    return(0)  # Condition not met
+    return(double_newline_count)  # Condition not met
   }
 }
 #<---End of the Function section--->
@@ -108,38 +109,26 @@ selected_data$label <- as.factor(selected_data$label)
 #Split data
 set.seed(123) 
 
-index <- sample(1:nrow(selected_data), size = 0.5 * nrow(selected_data)) 
+index <- sample(1:nrow(selected_data), size = 0.75 * nrow(selected_data)) 
 train_data <- selected_data[index, ]
 test_data <- selected_data[-index, ]
 
-# Train decision tree model
-ds_model <- rpart(label ~   LessThan5000 + line_spacing, data = train_data, method = "class")
 
-#Train Naive Bayes model
+# Train SVM model
+svm_model <- svm(label ~  line_spacing, data = train_data, kernel = "linear")
 
-nb_model <- naiveBayes(label ~   LessThan5000 + line_spacing, data = train_data, method = "class")
+# Make predictions using SVM
+svm_prediction <- predict(svm_model, test_data)
 
+# Confusion matrix for SVM
+svm_conf_matrix <- table(Predicted = svm_prediction, Actual = test_data$label)
+print(svm_conf_matrix)
 
-str(train_data)
-
-#visualize the tree
-
-#rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
-
-#predictions using tree
-#predictions <- predict(ds_model, test_data, type = "class")
-
-#prediction using naive bayes
-prediction <- predict(nb_model, test_data[, c("LessThan5000", "line_spacing")])
+# Accuracy for SVM
+svm_accuracy <- sum(diag(svm_conf_matrix)) / sum(svm_conf_matrix)
+print(paste("SVM Accuracy:", round(svm_accuracy * 100, 2), "%"))
 
 
-# Confusion matrix
-conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
-print(conf_matrix)
-
-# Calculate accuracy
-accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
-print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
 
 
 
