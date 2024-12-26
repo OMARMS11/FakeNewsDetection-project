@@ -6,6 +6,7 @@ library(e1071)
 library(tm)
 library(stringi)
 library(textreadr)
+library(ggplot2)
 
 
 #<---The Functions are here--->
@@ -102,8 +103,22 @@ selected_data$LessThan5000 <- ifelse(selected_data[, 1] < 5000, 1, 0)
 
 selected_data <- na.omit(selected_data)
 head(selected_data)
+ggplot(selected_data, aes(x = factor(LessThan5000), fill = label)) +
+  geom_bar(position = "dodge") +
+  labs(x = "LessThan5000", y = "Count", fill = "Label") +
+  ggtitle("Bar Plot of LessThan5000 vs Label")
 selected_data <- selected_data[selected_data$label %in% c("REAL", "FAKE"), ]
 selected_data$label <- as.factor(selected_data$label)
+
+ggplot(selected_data, aes(x = label, y = line_spacing, fill = label)) +
+  geom_violin() +
+  labs(x = "Label", y = "line_spacing") +
+  ggtitle("Violin Plot of Line Spacing vs Label")
+
+ggplot(selected_data, aes(x = label, y = IsCaps, fill = label)) +
+  geom_violin() +
+  labs(x = "Label", y = "IsCaps") +
+  ggtitle("Violin Plot of IsCaps vs Label")
 
 #Split data
 set.seed(123) 
