@@ -1,16 +1,17 @@
 
-#View data frame updates#<---packages here--->
+#View data frame updates#<---packages here--->instal
 library(rpart)
 library(rpart.plot)
 library(e1071)
 library(tm)
 library(stringi)
+library(class)
 
 
 
 #<---The Functions are here--->
 IsCapsMore <- function(text) {
- 
+  
   uppercase_matches <- gregexpr("[A-Z]", text)
   
   
@@ -106,7 +107,7 @@ selected_data <- selected_data[selected_data$label %in% c("REAL", "FAKE"), ]
 selected_data$label <- as.factor(selected_data$label)
 
 #Split data
-set.seed(123) 
+set.seed(353) 
 
 index <- sample(1:nrow(selected_data), size = 0.5 * nrow(selected_data)) 
 train_data <- selected_data[index, ]
@@ -115,26 +116,23 @@ test_data <- selected_data[-index, ]
 # Train decision tree model
 ds_model <- rpart(label ~   LessThan5000 + line_spacing, data = train_data, method = "class")
 
-#Train Naive Bayes model
 
-nb_model <- naiveBayes(label ~   LessThan5000 + line_spacing, data = train_data, method = "class")
 
 
 str(train_data)
 
 #visualize the tree
 
-#rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
+rpart.plot(ds_model, type = 3, extra = 101, main = "Decision Tree")
 
 #predictions using tree
-#predictions <- predict(ds_model, test_data, type = "class")
+predictions <- predict(ds_model, test_data, type = "class")
 
-#prediction using naive bayes
-prediction <- predict(nb_model, test_data[, c("LessThan5000", "line_spacing")])
+
 
 
 # Confusion matrix
-conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
+conf_matrix <- table(Predicted = predictions, Actual = test_data$label)
 print(conf_matrix)
 
 # Calculate accuracy
@@ -142,9 +140,6 @@ accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
 print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
 
 
-
-
-#View data frame updates
 
 
 

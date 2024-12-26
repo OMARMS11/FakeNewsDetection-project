@@ -1,0 +1,7 @@
+Project insights:
+
+1- the news depends heavily on the structure of the sentense to determine if it is fake or real.
+2-After trying many features the most 2 features affecting the model is the Line spacing in the sentenses and the percentage of
+  Captililzation in the sentense.
+3- The Models used are Naive Bayes ,Decision Tree,SVM and logistic regression.
+4- The Best performing models, on Top was Decision Tree and the Worst performing was Naive Bayes.
