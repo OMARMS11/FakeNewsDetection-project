@@ -6,11 +6,12 @@ library(e1071)
 library(tm)
 library(stringi)
 library(textreadr)
-
+library(e1071)
+library(xgboost)
 
 #<---The Functions are here--->
 IsCapsMore <- function(text) {
- 
+  
   uppercase_matches <- gregexpr("[A-Z]", text)
   
   
@@ -113,25 +114,24 @@ train_data <- selected_data[index, ]
 test_data <- selected_data[-index, ]
 
 
-str(train_data)
+# Prepare data
+train_matrix <- as.matrix(train_data[, c("IsCaps", "line_spacing")])
+test_matrix <- as.matrix(test_data[, c("IsCaps", "line_spacing")])
+train_label <- as.numeric(train_data$label) - 1  # Convert to binary 0,1
+test_label <- as.numeric(test_data$label) - 1
 
-# Fit Decision Tree Model
-tree_model <- rpart(label ~ IsCaps + line_spacing, data = train_data, method = "class")
+# Train XGBoost model
+xgb_model <- xgboost(data = train_matrix, label = train_label, 
+                     nrounds = 100, objective = "binary:logistic")
 
-# Visualize the Decision Tree
-rpart.plot(tree_model)
+# Predict using the model
+xgb_prediction <- predict(xgb_model, test_matrix)
+xgb_pred_class <- ifelse(xgb_prediction > 0.5, "REAL", "FAKE")
 
-#predictions using tree
-prediction <- predict(tree_model, test_data, type = "class")
-
-# Confusion matrix
-conf_matrix <- table(Predicted = prediction, Actual = test_data$label)
-print(conf_matrix)
-
-# Calculate accuracy
+# Evaluate Accuracy
+conf_matrix <- table(Predicted = xgb_pred_class, Actual = test_data$label)
 accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
-print(paste("Accuracy:", round(accuracy * 100, 2), "%"))
-
+print(paste("XGBoost Accuracy:", round(accuracy * 100, 2), "%"))
 
 
 

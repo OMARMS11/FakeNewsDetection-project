@@ -4,3 +4,4 @@ Here is the accuracy for each model used :
 - Decision Tee : 93.41%
 - Logistic Regression : 92.08%
 - Random Forest : 93.6%
+- XGBoost : 93.28%
